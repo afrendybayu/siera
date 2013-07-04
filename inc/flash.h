@@ -16,10 +16,22 @@
 #define  PG_IP_ADD_SIZE              	   33
 
 #define WDATA_CMD_PARAM_CONFIG  0x0061
-#define WSET_CMD_PARAM_CONFIG   0x0071
+#define WSET_CMD_PARAM_CONFIG   0x0081		// 8 jml argumennya !!
 
-typedef enum
-{
+/* Parameters of AT+WDATA command */
+u32 DestAddress;
+s8  Mode;
+u8  ContextID;
+u32 DestDataSize;
+u32 PingPacketSize;
+u16 PingInterval;
+
+/* Flash objects handle */
+static const ascii* PING_FLH_HANDLE = "WmPING";
+static const ascii* PingCmd = "AT+WDATA";
+static const ascii* PingConfigCmd = "AT+GSET";
+
+typedef enum	{
     /* Contexts parameters */
 	PING_FLHID_NAME,
 	PING_FLHID_APN,
@@ -40,8 +52,7 @@ typedef enum
     PING_FLHID_LAST
 } ping_FlashIds_e;
 
-typedef enum
-{
+typedef enum	{
     PING_FORMAT_STR,
     PING_FORMAT_U8,
     PING_FORMAT_U16,
@@ -63,18 +74,18 @@ static const PingFlashFormat_e Ping_FormatsTable [ PING_FLHID_LAST ] = {
 /* PING_FLHID_TIMER               */PING_FORMAT_U8,
 /* PING_FLHID_CID                 */PING_FORMAT_U8 };
 
-/* Flash objects handle */
-static const ascii * PING_FLH_HANDLE = "WmPING";
-
-
-
-
-
 #define CONTEXT_NB          4
 #define PING_FLHID_COUNT    ( ( PING_FLHID_LAST_CONTEXT_PARAM * CONTEXT_NB ) \
                                 + ( PING_FLHID_LAST - \
                                     PING_FLHID_LAST_CONTEXT_PARAM ) )
 //6*4 + 11-6 = 24 + 5 = 29
 
+void cbPingCmdHandler ( adl_atCmdPreParser_t *paras );
+void cbPingConfigCmdHandler ( adl_atCmdPreParser_t * paras );
+
+void init_baca_flash();
+void ReleaseSetupParams ( adl_gprsSetupParams_t * SetupParams );
+void UpdateFlashParameter ( u16 id, u8 CID, ascii ** ParamStr, bool bWrite );
+void InitWdataParams ( void );
 
 #endif /* FLASH_H_ */

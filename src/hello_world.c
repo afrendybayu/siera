@@ -96,26 +96,24 @@ void HelloWorld_TimerHandler ( adl_atCmdPreParser_t *paras )
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /***************************************************************************/
-void main_task ( void )
-{
-
+void main_task ( void )		{
 	adl_InitType_e adl_InitType = adl_InitGetType ();
     TRACE (( 1, "Embedded : Appli Init" ));
 
     s16 s16Return = 0;
-    s16Return = subscribe_csq();
+    //s16Return = subscribe_csq();
     subscribe_flash();
     init_flash();
 
     TRACE( ( APPLI_AT_CMD_TRACE_LEVEL, "ATCmdCSQ_Subscription: error in subscription: %d", s16Return ) );
 
-    if ( 0 > s16Return )
-    {
+    if ( 0 > s16Return )    {
     	adl_atSendResponse ( ADL_AT_UNS, "masuk csq subscribe > 0\r\n\r\n" );
-    } else {
+    }
+    else {
     	adl_atSendResponse ( ADL_AT_UNS, "masuk csq subscribe NOL\r\n\r\n" );
     }
 
     /* Set 1s cyclic timer */
-    adl_tmrSubscribe ( TRUE, 50, ADL_TMR_TYPE_100MS, HelloWorld_TimerHandler );
+    //adl_tmrSubscribe ( TRUE, 50, ADL_TMR_TYPE_100MS, HelloWorld_TimerHandler );
 }

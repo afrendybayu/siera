@@ -8,22 +8,6 @@
 #include "at_cmd_service.h"
 #include "flash.h"
 
-/* Parameters of AT+WDATA command */
-u32 DestAddress;
-s8  Mode;
-u8  ContextID;
-u32 DestDataSize;
-u32 PingPacketSize;
-u16 PingInterval;
-
-static const ascii* PingCmd = "AT+WDATA";
-static const ascii* PingConfigCmd = "AT+GSET";
-
-void cbPingCmdHandler ( adl_atCmdPreParser_t *paras );
-void cbPingConfigCmdHandler ( adl_atCmdPreParser_t * paras );
-
-void init_baca_flash();
-void ReleaseSetupParams ( adl_gprsSetupParams_t * SetupParams );
 
 s16 init_flash() {
 
@@ -51,6 +35,7 @@ s16 init_flash() {
 
 
     TRACE ( ( 44, "----Reading Settings from Flash Done----" ) );
+    return 0;
 }
 
 void init_baca_flash()	{
@@ -83,14 +68,11 @@ void subscribe_flash()	{
 	                                | ADL_CMD_TYPE_READ | WDATA_CMD_PARAM_CONFIG );
 #endif
 	adl_atCmdSubscribe ( ( ascii* ) PingConfigCmd,
-	                                cbPingConfigCmdHandler, ADL_CMD_TYPE_TEST
-	                                                | ADL_CMD_TYPE_PARA
-	                                                | ADL_CMD_TYPE_READ
-	                                                | WSET_CMD_PARAM_CONFIG );
+	                                cbPingConfigCmdHandler, ADL_CMD_TYPE_TEST |
+	                                	ADL_CMD_TYPE_PARA | ADL_CMD_TYPE_READ | WSET_CMD_PARAM_CONFIG );
 }
 
-void InitWdataParams ( void )
-{
+void InitWdataParams ( void )	{
     /* Initialize the AT+WADATA command parameters */
     ContextID = PG_DEFAULT_CTX_ID;
     PingInterval = PG_DEFAULT_PING_INTERVAL;
@@ -100,9 +82,11 @@ void InitWdataParams ( void )
 
 void cbPingCmdHandler ( adl_atCmdPreParser_t *paras )
 {
-    ascii RspBuffer [ PG_RSP_BUFF_SIZE ] = { PG_ZERO };
+    /*
+	ascii RspBuffer [ PG_RSP_BUFF_SIZE ] = { PG_ZERO };
     ascii IPAddress [ PG_IP_ADD_SIZE ] = { PG_ZERO };
     s8 Ret = OK;
+    */
 }
 
 void RefreshSetupParams ( u8 CID, adl_gprsSetupParams_t * SetupParams )
@@ -143,6 +127,7 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
     adl_gprsSetupParams_t SetupParams;
     ascii * Para = NULL;
     u8 CID = PG_ZERO;
+    ascii provider [30] = { PG_ZERO };
 
     wm_memset ( &SetupParams, PG_ZERO, sizeof(adl_gprsSetupParams_t) );
 
@@ -170,16 +155,25 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
     /* Update Setup Params from required context */
     RefreshSetupParams ( CID, &SetupParams );
 
-    /* Second Parameter : apn */
+    /* Second Parameter : priovider */
+
     Para = ADL_GET_PARAM ( paras, PG_SECOND_PARAM );
-    if ( Para != NULL )
-    {
-        if ( !Para [ PG_ZERO ] )
-        {
+    if ( Para == NULL )  {
+    	wm_sprintf ( provider, "%s", "-" );
+    }	    	/* Update flash */
+    TRACE ( ( 15, " >>>>> Provider : %s", provider ) );
+    UpdateFlashParameter ( ( u16 ) PING_FLHID_NAME, CID, provider, TRUE );
+    TRACE ( ( 15, provider ) );
+
+
+
+    /* Third Parameter : apn */
+    Para = ADL_GET_PARAM ( paras, PG_THIRD_PARAM );
+    if ( Para != NULL )    {
+        if ( !Para [ PG_ZERO ] )        {
             TRACE ( ( 15, "Invalid Apn parameter value" ) );
             adl_atSendStdResponseExt ( ADL_AT_PORT_TYPE ( paras->Port,
-                            ADL_AT_RSP ), ADL_STR_CME_ERROR,
-                            PG_INVALID_ERR_PARAM );
+                            ADL_AT_RSP ), ADL_STR_CME_ERROR, PG_INVALID_ERR_PARAM );
 
             /* Release memory */
             ReleaseSetupParams ( &SetupParams );
@@ -199,15 +193,13 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
         wm_strcpy ( SetupParams.APN, Para );
 
         /* Update flash */
-        UpdateFlashParameter ( ( u16 ) PING_FLHID_APN, CID, &SetupParams.APN,
-                        TRUE );
+        UpdateFlashParameter ( ( u16 ) PING_FLHID_APN, CID, &SetupParams.APN, TRUE );
         TRACE ( ( 15, SetupParams.APN ) );
     }
 
-    /* Third Parameter : login */
-    Para = ADL_GET_PARAM ( paras, PG_THIRD_PARAM );
-    if ( Para != NULL )
-    {
+    /* Forth Parameter : login */ // EMPAT : 4
+    Para = ADL_GET_PARAM ( paras, PG_FOURTH_PARAM );
+    if ( Para != NULL )    {
         /* Set Login param */
         if ( SetupParams.Login != NULL )
         {
@@ -225,13 +217,12 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
         TRACE ( ( 15, SetupParams.Login ) );
     }
 
-    /* Fourth Parameter : password */
-    Para = ADL_GET_PARAM ( paras, PG_FOURTH_PARAM );
+    /* Fifth Parameter : password */
+    Para = ADL_GET_PARAM ( paras, PG_FIFTH_PARAM );
     if ( Para != NULL )
     {
         /* Set Password param */
-        if ( SetupParams.Password != NULL )
-        {
+        if ( SetupParams.Password != NULL )  {
             /* Release old parameter */
             adl_memRelease ( SetupParams.Password );
         }
@@ -248,8 +239,8 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
         TRACE ( ( 15, SetupParams.Password ) );
     }
 
-    /* Fifth Parameter : fixed IP */
-    Para = ADL_GET_PARAM ( paras, PG_FIFTH_PARAM );
+    /* Sixth Parameter : fixed IP */
+    Para = ADL_GET_PARAM ( paras, PG_SIXTH_PARAM );
 
     if ( Para != NULL )
     {
@@ -273,11 +264,10 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
     }
 
     /* Update flash */
-    UpdateFlashParameter ( ( u16 ) PING_FLHID_IP, CID, &SetupParams.FixedIP,
-                    TRUE );
+    UpdateFlashParameter ( ( u16 ) PING_FLHID_IP, CID, &SetupParams.FixedIP, TRUE );
 
-    /* Sixth Parameter : Data compression */
-    Para = ADL_GET_PARAM ( paras, PG_SIXTH_PARAM );
+    /* Seventh Parameter : Data compression */
+    Para = ADL_GET_PARAM ( paras, PG_SEVENTH_PARAM );
     if ( Para != NULL )
     {
         /* Copy param */
@@ -286,8 +276,7 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
         /* Update flash */
         UpdateFlashParameter ( ( u16 ) PING_FLHID_DATA_COMPRESSION, CID,
                         ( ascii* ) &SetupParams.DataCompression, TRUE );
-        TRACE ( ( 44, "Data Compression : %d",
-                                        SetupParams.DataCompression ) );
+        TRACE ( ( 5, "Data Compression : %d", SetupParams.DataCompression ) );
     }
 
     /* Seventh Parameter : Header compression */
@@ -300,8 +289,7 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
         /* Update flash */
         UpdateFlashParameter ( ( u16 ) PING_FLHID_HEADER_COMPRESSION, CID,
                         ( ascii* ) &SetupParams.HeaderCompression, TRUE );
-        TRACE ( ( 44, "Header Compression : %d",
-                                        SetupParams.HeaderCompression ) );
+        TRACE ( ( 5, "Header Compression : %d", SetupParams.HeaderCompression ) );
     }
 
     /* Release memory */
@@ -317,12 +305,13 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
 void cbPingConfigCmdHandler ( adl_atCmdPreParser_t * paras )
 {
     ascii Rsp [ PG_RSP_BUFF_SIZE ] = { PG_ZERO };
-    ascii provider [20] = { PG_ZERO };
+    ascii provider [30] = { PG_ZERO };
     u8 Counter = PG_ZERO;
     adl_gprsSetupParams_t SetupParams;
+    TRACE( ( 1, "++++++ AT+GSET cbPingConfigCmdHandler: ") );
+    TRACE( ( 2, paras->StrData ) );
 
     /* Initialize the members of GPRS settings */
-    provider = NULL;
     SetupParams.APN = NULL;
     SetupParams.FixedIP = NULL;
     SetupParams.Login = NULL;
@@ -330,17 +319,16 @@ void cbPingConfigCmdHandler ( adl_atCmdPreParser_t * paras )
     SetupParams.DataCompression = 0;
     SetupParams.HeaderCompression = 0;
 
-    switch ( paras->Type )
-    {
+    switch ( paras->Type )    {
         case ADL_CMD_TYPE_TEST :
         {
             /* Send Intermediate responses */
             adl_atSendResponse ( ADL_AT_PORT_TYPE ( paras->Port, ADL_AT_INT ),
-                            "\r\n+GSET: (1-4),(100),(50),(50),(15),(0-1),(0-1)\r\n" );
+                            "+GSET: [No],[Provider],[APN],[user],[password],[FixIP],[DataCompres],[HeadrComp]\r\n" );
+            adl_atSendResponse ( ADL_AT_PORT_TYPE ( paras->Port, ADL_AT_INT ),
+                            "+GSET: [1-4],str(30),str(30),str(30),str(30),str(15),[0-1],[0-1]\r\n" );
 
-
-            adl_atSendStdResponse ( ADL_AT_PORT_TYPE ( paras->Port,
-                            ADL_AT_RSP ), ADL_STR_OK );
+            adl_atSendStdResponse ( ADL_AT_PORT_TYPE ( paras->Port, ADL_AT_RSP ), ADL_STR_OK );
         }
         break;
 
@@ -355,29 +343,26 @@ void cbPingConfigCmdHandler ( adl_atCmdPreParser_t * paras )
 
                 /* Ready to display */
 
-                wm_sprintf ( Rsp, "\r\n+GSET: %d,\"%s\",\"%s\",\"%s\",\"%s\",%d,%d\r\n", Counter,
-                                SetupParams.APN ? SetupParams.APN : "",
+                wm_sprintf ( Rsp, "\r\n+GSET: %d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%d,%d\r\n",
+                				Counter, provider, SetupParams.APN ? SetupParams.APN : "",
                                 SetupParams.Login ? SetupParams.Login : "",
-                                SetupParams.Password ? SetupParams.Password
-                                                : "",
+                                SetupParams.Password ? SetupParams.Password : "",
                                 SetupParams.FixedIP ? SetupParams.FixedIP : "",
-                                SetupParams.DataCompression,
-                                SetupParams.HeaderCompression );
+                                SetupParams.DataCompression, SetupParams.HeaderCompression );
 
                 /* Send Intermediate responses */
-                adl_atSendResponse ( ADL_AT_PORT_TYPE ( paras->Port,
-                                ADL_AT_INT ), Rsp );
+                adl_atSendResponse ( ADL_AT_PORT_TYPE ( paras->Port, ADL_AT_INT ), Rsp );
 
                 /* Release memory */
                 ReleaseSetupParams ( &SetupParams );
             }
-            adl_atSendStdResponse ( ADL_AT_PORT_TYPE ( paras->Port,
-                            ADL_AT_RSP ), ADL_STR_OK );
+            adl_atSendStdResponse ( ADL_AT_PORT_TYPE ( paras->Port, ADL_AT_RSP ), ADL_STR_OK );
         }
         break;
 
         case ADL_CMD_TYPE_PARA :
         {
+        	TRACE( ( 1, "############### HandlePingConfigCmdParams ADL_CMD_TYPE_PARA ##### ") );
             HandlePingConfigCmdParams ( paras );
         }
         break;
@@ -390,20 +375,20 @@ void UpdateFlashParameter ( u16 id, u8 CID, ascii ** ParamStr, bool bWrite )
     /* Get format */
     PingFlashFormat_e Format = Ping_FormatsTable [ id ];
     s32 Length = PG_ZERO;
+    if (id == ( u16 ) PING_FLHID_NAME)	{
+    	TRACE ( ( 5, "********* provider : %s/%s ***" , ParamStr, *ParamStr ) );
+    }
 
     /* Compute Real flash ID */
-    TRACE ( ( 44, "[fnUpdateFlashParameter] id : %d, CtxId : %d"
-                                    ,id, CID ) );
+    //TRACE ( ( 5, "[fnUpdateFlashParameter] id : %d, CtxId : %d" ,id, CID ) );
 
     /* Check for non-context flash parameters */
-    if ( !CID || ( CID > CONTEXT_NB ) )
-    {
+    if ( !CID || ( CID > CONTEXT_NB ) )    {
         /* Offset is CONTEXT_NB - 1 (id should already be >
          * PING_FLHID_LAST_CONTEXT_PARAM ) */
         CID = ( CONTEXT_NB - PG_ONE );
     }
-    else
-    {
+    else    {
         /* Reduce offset by one */
         CID--;
     }
@@ -418,7 +403,7 @@ void UpdateFlashParameter ( u16 id, u8 CID, ascii ** ParamStr, bool bWrite )
         if ( *ParamStr != NULL )
         {
             /* Switch on format */
-            TRACE ( ( 44, "Write into Flash" ) );
+            TRACE ( ( 15, "Write into Flash" ) );
             switch ( Format )
             {
                 case PING_FORMAT_STR :

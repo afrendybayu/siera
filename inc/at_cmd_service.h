@@ -54,6 +54,7 @@
 #define PG_FIFTH_PARAM                     4
 #define PG_SIXTH_PARAM                     5
 #define PG_SEVENTH_PARAM                   6
+#define PG_EIGTH_PARAM                     7
 
 #define PG_INVALID_ERR_PARAM               3
 
