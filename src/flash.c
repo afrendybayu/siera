@@ -7,7 +7,62 @@
 
 #include "at_cmd_service.h"
 #include "flash.h"
+#include "umum.h"
 
+/*IP Host Addr from the PING response */
+static u32 PingSend, PingRec;
+
+void cbPingCmdHandler ( adl_atCmdPreParser_t *paras )
+{
+    ascii RspBuffer [ PG_RSP_BUFF_SIZE ] = { PG_ZERO };
+    ascii IPAddress [ PG_IP_ADD_SIZE ] = { PG_ZERO };
+    s8 Ret = OK;
+
+    switch ( paras->Type )
+    {
+        case ADL_CMD_TYPE_TEST :
+        {
+            wm_sprintf ( RspBuffer, "\r\n+WDATA: (0-3),(15),(1-4),(%d-u32),"
+                "(%d-1500),(1-255)\r\n", ip_get_header_size ( ),
+                            ip_get_header_size ( ) );
+
+            /* Send intermediate response */
+            adl_atSendResponse ( ADL_AT_PORT_TYPE ( paras->Port, ADL_AT_INT ),
+                            RspBuffer );
+            /* Send terminal OK  response */
+            adl_atSendStdResponse ( ADL_AT_PORT_TYPE ( paras->Port,
+                            ADL_AT_RSP ), ADL_STR_OK );
+        }
+        break;
+
+        case ADL_CMD_TYPE_READ :
+        {
+	    wm_sprintf ( RspBuffer, "\r\n+WDATA: %d,\"%s\",%d,%d,%d,%d\r\n",
+                            PingSend, ConvertIPitoa ( DestAddress, IPAddress ),
+                            ContextID, DestDataSize, PingPacketSize, PingInterval );
+
+            /* Send intermediate response */
+            adl_atSendResponsePort ( ADL_AT_INT, paras->Port, RspBuffer );
+            /* Send terminal OK  response */
+            adl_atSendStdResponsePort ( ADL_AT_RSP, paras->Port, ADL_STR_OK );
+        }
+        break;
+
+        case ADL_CMD_TYPE_PARA :
+        {
+            //Ret = HandlePingCmd ( paras );
+            TRACE ( ( 2, "fnHandlePingCmd Returns : %d",
+                                            Ret ) );
+        }
+        break;
+
+        default :
+        {
+            TRACE ( ( 2, "[cbPingCmdHandler] Default cmd type" ) );
+        }
+        break;
+    }
+}
 
 s16 init_flash() {
 
@@ -61,12 +116,12 @@ void init_baca_flash()	{
 }
 
 void subscribe_flash()	{
-	TRACE ( ( 44, "----subscribe cmd Ping ****" ) );
-#if 0
+	TRACE ( ( 4, "----subscribe cmd Ping ****" ) );
+
 	adl_atCmdSubscribe ( ( ascii* ) PingCmd, cbPingCmdHandler,
 	                                ADL_CMD_TYPE_TEST | ADL_CMD_TYPE_PARA
 	                                | ADL_CMD_TYPE_READ | WDATA_CMD_PARAM_CONFIG );
-#endif
+
 	adl_atCmdSubscribe ( ( ascii* ) PingConfigCmd,
 	                                cbPingConfigCmdHandler, ADL_CMD_TYPE_TEST |
 	                                	ADL_CMD_TYPE_PARA | ADL_CMD_TYPE_READ | WSET_CMD_PARAM_CONFIG );
@@ -78,15 +133,6 @@ void InitWdataParams ( void )	{
     PingInterval = PG_DEFAULT_PING_INTERVAL;
     PingPacketSize = PG_DEFAULT_PINGPACKET_SIZE;
     DestDataSize = PG_DEFAULT_DATA_SIZE;
-}
-
-void cbPingCmdHandler ( adl_atCmdPreParser_t *paras )
-{
-    /*
-	ascii RspBuffer [ PG_RSP_BUFF_SIZE ] = { PG_ZERO };
-    ascii IPAddress [ PG_IP_ADD_SIZE ] = { PG_ZERO };
-    s8 Ret = OK;
-    */
 }
 
 void RefreshSetupParams ( u8 CID, adl_gprsSetupParams_t * SetupParams )
@@ -155,7 +201,7 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
     /* Update Setup Params from required context */
     RefreshSetupParams ( CID, &SetupParams );
 
-    /* Second Parameter : priovider */
+    /* Second Parameter : privider */
 
     Para = ADL_GET_PARAM ( paras, PG_SECOND_PARAM );
     if ( Para == NULL )  {
@@ -259,7 +305,7 @@ s8 HandlePingConfigCmdParams ( adl_atCmdPreParser_t * paras )
         wm_strcpy ( SetupParams.FixedIP, Para );
 
         /* Check IP address (for info) */
-        TRACE ( ( 44, "Is an IP address : %d",
+        TRACE ( ( 5, "Is an IP address : %d",
                                         adl_gprsIsAnIPAddress ( SetupParams.FixedIP ) ) );
     }
 

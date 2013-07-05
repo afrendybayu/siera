@@ -18,10 +18,10 @@ const adl_CompilationMode_e adl_CompilationMode = ADL_COMPILATION_MODE_RELEASE;
 #endif
 
 // Application name definition
-const ascii adl_InitApplicationName[] = "hello_world Sample";
+const ascii adl_InitApplicationName[] = "berpaket_lancar";
 
 // Company name definition
-const ascii adl_InitCompanyName[] = "MyCompany";
+const ascii adl_InitCompanyName[] = "dbe.Abadhy";
 
 // Application version definition
 const ascii adl_InitApplicationVersion[] = "1.0.0";

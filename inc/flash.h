@@ -8,12 +8,12 @@
 #ifndef FLASH_H_
 #define FLASH_H_
 
-#define  PG_DEFAULT_CTX_ID                  1
-#define  PG_DEFAULT_PING_INTERVAL          10
-#define  PG_DEFAULT_PINGPACKET_SIZE       100
-#define  PG_DEFAULT_DATA_SIZE             400
+#define PG_DEFAULT_CTX_ID                  1
+#define PG_DEFAULT_PING_INTERVAL          10
+#define PG_DEFAULT_PINGPACKET_SIZE       100
+#define PG_DEFAULT_DATA_SIZE             400
 
-#define  PG_IP_ADD_SIZE              	   33
+#define PG_IP_ADD_SIZE              	  33
 
 #define WDATA_CMD_PARAM_CONFIG  0x0061
 #define WSET_CMD_PARAM_CONFIG   0x0081		// 8 jml argumennya !!

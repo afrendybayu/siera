@@ -23,7 +23,26 @@
 /*  Include files                                                          */
 /***************************************************************************/
 #include "at_cmd_service.h"
+
+#include "adl_global.h"
 #include "wm_types.h"
+#include "wm_stdio.h"
+#include "wm_list.h"
+#include "adl_str.h"
+#include "adl_port.h"
+#include "adl_at.h"
+#include "adl_traces.h"
+#include "adl_memory.h"
+#include "adl_flash.h"
+#include "adl_fcm.h"
+#include "adl_AppliInit.h"
+#include "adl_UnSoHandler.h"
+#include "adl_RspHandler.h"
+#include "adl_CmdHandler.h"
+#include "adl_TimerHandler.h"
+#include "adl_gprs.h"
+#include "ip_ping.h"
+
 
 
 #ifndef __GNU_GCC__
@@ -76,15 +95,14 @@ const adl_InitTasks_t adl_InitTasks [] =
 void HelloWorld_TimerHandler ( adl_atCmdPreParser_t *paras )
 {
     /* Send a trace: Hello World */
-    TRACE (( 1, "Embedded : Hello World" ));
+    //TRACE (( 1, "Embedded : Hello World" ));
     /* Send a response: Hello World */
     //adl_atSendResponse ( ADL_AT_UNS, "Cek Signal dulu ....Hello World \r\n" );
 
     s8 s8Return = 0;
     s8Return = cek_signal();
 
-
-    TRACE (( APPLI_AT_CMD_TRACE_LEVEL, "atCmdCreate AT+CSQ : %d", s8Return ));
+    //TRACE (( APPLI_AT_CMD_TRACE_LEVEL, "atCmdCreate AT+CSQ : %d", s8Return ));
 }
 
 
@@ -98,10 +116,10 @@ void HelloWorld_TimerHandler ( adl_atCmdPreParser_t *paras )
 /***************************************************************************/
 void main_task ( void )		{
 	adl_InitType_e adl_InitType = adl_InitGetType ();
-    TRACE (( 1, "Embedded : Appli Init" ));
+    //TRACE (( 1, "Embedded : Appli Init" ));
 
     s16 s16Return = 0;
-    //s16Return = subscribe_csq();
+    s16Return = subscribe_csq();
     subscribe_flash();
     init_flash();
 
@@ -115,5 +133,5 @@ void main_task ( void )		{
     }
 
     /* Set 1s cyclic timer */
-    //adl_tmrSubscribe ( TRUE, 50, ADL_TMR_TYPE_100MS, HelloWorld_TimerHandler );
+    adl_tmrSubscribe ( TRUE, 50, ADL_TMR_TYPE_100MS, HelloWorld_TimerHandler );
 }

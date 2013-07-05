@@ -7,7 +7,7 @@
 
 #include "at_cmd_service.h"
 
-static const ascii* PingConfigCmd = "AT+GSET";
+
 
 void ATCmdCSQ_Handler ( adl_atCmdPreParser_t *paras );
 
@@ -27,24 +27,53 @@ s16 cek_signal()
 
 void ATCmdCSQ_Handler ( adl_atCmdPreParser_t *paras )
 {
-    s32 s32Return = 0;
-    s8 s8Return = 0;
+    //u8 CID = PG_ZERO;
+    ascii * Para = NULL;
     ascii RspBuffer [ PG_RSP_BUFF_SIZE ] = { PG_ZERO };
 
     //TRACE( ( 1, "ATCmdCSQ_Handler: Command Type %d, Received command:", paras->Type ) );
     TRACE( ( 22, paras->StrData ) );
-    TRACE( ( 3, "Cmd Type %d", paras->Type ) );
+    //TRACE( ( 3, "Cmd Type %d", paras->Type ) );
     //u8 FirstParam = wm_atoi ( ADL_GET_PARAM( paras, 0 ) );
     //TRACE( ( 5, "+CSQ parameter value: %d", FirstParam ) );
 
     if (strlen(paras->StrData)>5)	{
 		wm_sprintf ( RspBuffer, "Hasil CSQ: %s" , paras->StrData );
-		//adl_atSendResponse ( ADL_AT_PORT_TYPE ( paras->Port, ADL_AT_INT ), RspBuffer );
+		//Para = wm_lstGetItem ( paras, PG_FIRST_PARAM );
+		//TRACE( ( 2, Para ) );
+		///strGetIDExt
+		adl_atSendResponse ( ADL_AT_PORT_TYPE ( paras->Port, ADL_AT_INT ), RspBuffer );
 		//adl_atSendStdResponse ( ADL_AT_PORT_TYPE ( paras->Port, ADL_AT_RSP ), ADL_STR_OK );
     }
 
-    if ( ( 0 > s8Return ) || ( 0 > s32Return ) )
-    {
-        TRACE( ( APPLI_AT_CMD_TRACE_LEVEL, "ATCmdCSQ_Handler: error in sending the command" ) );
-    }
+    switch ( paras->Type )
+        {
+            case ADL_CMD_TYPE_TEST :
+            {
+            	TRACE( ( 1, "+++++++++++ ATCmdCSQ_Handler ADL_CMD_TYPE_TEST" ) );
+            }
+            break;
+
+            case ADL_CMD_TYPE_READ :
+            {
+            	TRACE( ( 1, "+++++++++++ ATCmdCSQ_Handler ADL_CMD_TYPE_READ" ) );
+            }
+            break;
+            case ADL_CMD_TYPE_PARA :
+            {
+            	TRACE( ( 1, "+++++++++++ ATCmdCSQ_Handler ADL_CMD_TYPE_PARA" ) );
+            }
+            break;
+
+            case ADL_CMD_TYPE_ACT :
+            {
+            	TRACE( ( 1, "+++++++++++ ATCmdCSQ_Handler ADL_CMD_TYPE_ACT" ) );
+            }
+            break;
+            case ADL_CMD_TYPE_ROOT :
+            {
+            	TRACE( ( 1, "+++++++++++ ATCmdCSQ_Handler ADL_CMD_TYPE_ROOT" ) );
+            }
+            break;
+        }
 }
