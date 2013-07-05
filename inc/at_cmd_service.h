@@ -38,6 +38,14 @@
 
 #include "adl_gprs.h"
 
+extern u8  ContextID;
+extern s8  Mode;
+extern u16 PingInterval;
+extern u32 DestAddress;
+extern u32 DestDataSize;
+extern u32 PingPacketSize;
+extern s8  FCMHandler;
+
 
 #define PG_ZERO                     0
 #define PG_ONE                      1
@@ -68,9 +76,21 @@
 #define PG_EIGTH_PARAM                     7
 
 #define PG_INVALID_ERR_PARAM               3
+#define PG_INVALID_ERR_OPERATION           4
+
+typedef enum _PgPingMode_e
+{
+    PING_DISABLE_GPRS_SESSION,
+    PING_START_GPRS_SESSION,
+    PING_RESTART_GPRS_SESSION,
+    PING_PROCESS_GPRS_SESSION_ACTIVATION,
+    PING_LAST_PING_MODE
+}PgPingMode_e;
+
+static u32 PingSend, PingRec;
+
 
 u32 ConvertIPatoi ( ascii * aIP );
-
 s16 cek_signal();
 s16 subscribe_csq();
 s16 init_flash();

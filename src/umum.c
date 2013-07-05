@@ -9,6 +9,8 @@
 #include "at_cmd_service.h"
 #include "umum.h"
 
+
+
 ascii * ConvertIPitoa ( u32 iIP, ascii * aIP )
 {
     wm_sprintf ( aIP, "%d.%d.%d.%d", ( iIP >> PG_SHIFT_THREE_BYTES ) & PG_MASK,

@@ -10,6 +10,7 @@
 
 #include "adl_global.h"
 
+s8 ValidateIPAddress ( ascii *IP );
 ascii * ConvertIPitoa ( u32 iIP, ascii * aIP );
 u32 ConvertIPatoi ( ascii * aIP );
 

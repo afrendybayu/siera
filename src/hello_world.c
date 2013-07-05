@@ -64,7 +64,13 @@
 #define DECLARE_CALL_STACK(X)   (X*3)
 #endif /* #ifndef __GNU_GCC__ */
 
-
+u8  ContextID;
+s8  Mode;
+u16 PingInterval;
+u32 DestAddress;
+u32 DestDataSize;
+u32 PingPacketSize;
+s8 FCMHandler;
 
 // Application tasks prototypes
 extern void main_task ( void );
@@ -119,7 +125,8 @@ void main_task ( void )		{
     //TRACE (( 1, "Embedded : Appli Init" ));
 
     s16 s16Return = 0;
-    s16Return = subscribe_csq();
+    init_csq_gprs();
+    //s16Return = subscribe_csq();
     subscribe_flash();
     init_flash();
 

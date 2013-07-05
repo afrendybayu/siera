@@ -8,61 +8,91 @@
 #include "at_cmd_service.h"
 #include "flash.h"
 #include "umum.h"
+#include "csq_gprs.h"
+#include "adl_gprs.h"
+
+#include "adl_global.h"
+
 
 /*IP Host Addr from the PING response */
-static u32 PingSend, PingRec;
 
-void cbPingCmdHandler ( adl_atCmdPreParser_t *paras )
-{
-    ascii RspBuffer [ PG_RSP_BUFF_SIZE ] = { PG_ZERO };
-    ascii IPAddress [ PG_IP_ADD_SIZE ] = { PG_ZERO };
+//s8 FCMHandler = OK;
+u32 DestAddressFlash;
+
+void simpan_IP(u32 almt)	{
+	u32 *Ptr32;
+
+	Ptr32 = &almt;
+	UpdateFlashParameter ( ( u16 ) PING_FLHID_HOSTADDR, PG_ZERO,
+		                            ( ascii** ) &Ptr32, TRUE );
+}
+
+
+s8 ValidateIPAddress ( ascii *IP )		{
     s8 Ret = OK;
+    u32 *Ptr32;
+    //u32 DestAddress;
 
-    switch ( paras->Type )
+    if ( IP && IP [ PG_ZERO ] )
     {
-        case ADL_CMD_TYPE_TEST :
+        if ( adl_gprsIsAnIPAddress ( IP ) )
         {
-            wm_sprintf ( RspBuffer, "\r\n+WDATA: (0-3),(15),(1-4),(%d-u32),"
-                "(%d-1500),(1-255)\r\n", ip_get_header_size ( ),
-                            ip_get_header_size ( ) );
+            /* Convert IP address */
+            TRACE ( ( 7, IP ) );
 
-            /* Send intermediate response */
-            adl_atSendResponse ( ADL_AT_PORT_TYPE ( paras->Port, ADL_AT_INT ),
-                            RspBuffer );
-            /* Send terminal OK  response */
-            adl_atSendStdResponse ( ADL_AT_PORT_TYPE ( paras->Port,
-                            ADL_AT_RSP ), ADL_STR_OK );
+            DestAddress = ConvertIPatoi ( IP );
+
+            /* Update flash */
+            Ptr32 = &DestAddress;
+            UpdateFlashParameter ( ( u16 ) PING_FLHID_HOSTADDR, PG_ZERO,
+                            ( ascii** ) &Ptr32, TRUE );
         }
-        break;
-
-        case ADL_CMD_TYPE_READ :
+        else
         {
-	    wm_sprintf ( RspBuffer, "\r\n+WDATA: %d,\"%s\",%d,%d,%d,%d\r\n",
-                            PingSend, ConvertIPitoa ( DestAddress, IPAddress ),
-                            ContextID, DestDataSize, PingPacketSize, PingInterval );
-
-            /* Send intermediate response */
-            adl_atSendResponsePort ( ADL_AT_INT, paras->Port, RspBuffer );
-            /* Send terminal OK  response */
-            adl_atSendStdResponsePort ( ADL_AT_RSP, paras->Port, ADL_STR_OK );
+            /* IP error */
+            TRACE ( ( 7, "Invalid IP Address" ) );
+            Ret = ERROR;
         }
-        break;
+    }
+    else
+    {
+        /* IP Address Not specified */
+        TRACE ( ( 7, "IP Address Not Specified" ) );
+    }
+    return Ret;
+}
 
-        case ADL_CMD_TYPE_PARA :
-        {
-            //Ret = HandlePingCmd ( paras );
-            TRACE ( ( 2, "fnHandlePingCmd Returns : %d",
-                                            Ret ) );
-        }
-        break;
-
-        default :
-        {
-            TRACE ( ( 2, "[cbPingCmdHandler] Default cmd type" ) );
-        }
-        break;
+s8 ValidateMode ( ascii *ModeParam )
+{
+    if ( ( ModeParam == NULL ) || ( wm_isnumstring ( ModeParam ) == FALSE )
+                    || ( ( Mode = wm_atoi ( ModeParam ) )
+                                    >= PING_LAST_PING_MODE ) || ( Mode
+                    < PING_DISABLE_GPRS_SESSION ) )
+    {
+        /* Invalid ping mode */
+        TRACE ( ( 7, "Invalid Mode" ) );
+        return ERROR;
+    }
+    else
+    {
+        /* valid ping mode */
+        return OK;
     }
 }
+
+
+
+void StartSession ( adl_gprsSetupParams_t *SetupParams, u8 Port )
+{
+    s32 Return = OK;
+
+    PingSend = PG_ZERO;
+    PingRec = PG_ZERO;
+}
+
+
+
+
 
 s16 init_flash() {
 
@@ -89,7 +119,7 @@ s16 init_flash() {
 	}
 
 
-    TRACE ( ( 44, "----Reading Settings from Flash Done----" ) );
+    TRACE ( ( 4, "----Reading Settings from Flash Done----" ) );
     return 0;
 }
 
@@ -97,6 +127,8 @@ void init_baca_flash()	{
 	u8  *Ptr8;
 	u16 *Ptr16;
 	u32 *Ptr32;
+
+
 	TRACE ( ( 44, "----Read Settings from Flash----" ) );
 	Ptr32 = &DestAddress;
 	UpdateFlashParameter ( ( u16 ) PING_FLHID_HOSTADDR, PG_ZERO,
@@ -127,13 +159,7 @@ void subscribe_flash()	{
 	                                	ADL_CMD_TYPE_PARA | ADL_CMD_TYPE_READ | WSET_CMD_PARAM_CONFIG );
 }
 
-void InitWdataParams ( void )	{
-    /* Initialize the AT+WADATA command parameters */
-    ContextID = PG_DEFAULT_CTX_ID;
-    PingInterval = PG_DEFAULT_PING_INTERVAL;
-    PingPacketSize = PG_DEFAULT_PINGPACKET_SIZE;
-    DestDataSize = PG_DEFAULT_DATA_SIZE;
-}
+
 
 void RefreshSetupParams ( u8 CID, adl_gprsSetupParams_t * SetupParams )
 {
