@@ -9,6 +9,11 @@
 #define FLASH_H_
 
 //#include "csq_gprs.h"
+#include "adl_global.h"
+#include "wm_types.h"
+#include "wm_stdio.h"
+#include "wm_list.h"
+#include "adl_str.h"
 
 #define WDATA_CMD_PARAM_CONFIG  0x0061
 #define WSET_CMD_PARAM_CONFIG   0x0081		// 8 jml argumennya !!

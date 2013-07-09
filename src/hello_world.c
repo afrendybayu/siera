@@ -25,6 +25,8 @@
 #include "at_cmd_service.h"
 
 #include "adl_global.h"
+#include "wip.h"
+
 #include "wm_types.h"
 #include "wm_stdio.h"
 #include "wm_list.h"
@@ -78,7 +80,7 @@ extern void main_task ( void );
 // Application tasks declaration table
 const adl_InitTasks_t adl_InitTasks [] =
 {
-    { main_task,  DECLARE_CALL_STACK ( 1024 ), "main", 1 },
+    { main_task,  DECLARE_CALL_STACK ( 8192*2 ), "main", 1 },
     { 0, 0, 0, 0 }
 };
 
@@ -120,6 +122,10 @@ void HelloWorld_TimerHandler ( adl_atCmdPreParser_t *paras )
 /*                                                                         */
 /*-------------------------------------------------------------------------*/
 /***************************************************************************/
+
+extern void AppliEntryPoint ( void );
+extern void CfgGprs ( void ( *EntryPoint ) ( void ) ) ;
+
 void main_task ( void )		{
 	adl_InitType_e adl_InitType = adl_InitGetType ();
     //TRACE (( 1, "Embedded : Appli Init" ));
@@ -140,5 +146,12 @@ void main_task ( void )		{
     }
 
     /* Set 1s cyclic timer */
-    adl_tmrSubscribe ( TRUE, 50, ADL_TMR_TYPE_100MS, HelloWorld_TimerHandler );
+    //adl_tmrSubscribe ( TRUE, 50, ADL_TMR_TYPE_100MS, HelloWorld_TimerHandler );
+
+    s8 ret;
+    ret = wip_netInitOpts ( WIP_NET_OPT_END );
+
+    if ( OK == ret )    {
+    	CfgGprs ( AppliEntryPoint ) ;
+    }
 }

@@ -6,6 +6,7 @@ const char mos_headerSEList[] =
 "Open AT Framework package\0" "2.35.5.201206121412\0"
 "Open AT OS Package\0" "6.37.0.201202060950\0"
 "Firmware Package\0" "7.45.5.201201230652\0"
+"Internet Library Package\0" "5.43.0.201202100610\0"
 "\0";
 
 #if __OAT_API_VERSION__ >= 636

@@ -12,9 +12,6 @@
 
 
 
-
-
-
 s8 iRssiSIM;
 s8 iBerSIM;
 s8 signalOK;
@@ -26,10 +23,7 @@ static adl_tmr_t* PingTimer;
 static adl_port_e PingResponsePort;
 static u32 PingNbPackets;
 
-void var_Network()	{
-
-
-}
+void ATCmdCSQ_Handler ( adl_atCmdPreParser_t *paras );
 
 void cbPingCmdHandler ( adl_atCmdPreParser_t *paras )
 {
@@ -109,7 +103,7 @@ void InitWdataParams ( void )	{
     DestDataSize = PG_DEFAULT_DATA_SIZE;
 }
 
-void ATCmdCSQ_Handler ( adl_atCmdPreParser_t *paras );
+
 
 s8 HandlePingCmd ( adl_atCmdPreParser_t *paras )
 {
@@ -499,12 +493,15 @@ s8 cbGPRSHandler ( u16 Event, u8 Cid )
 }
 
 s16 konek_GPRS()	{
+	s16 konek=OK;
+	TRACE ( ( 2, "KOnek GPRS----" ) );
 	if ( adl_gprsSubscribe ( cbGPRSHandler ) == OK )	    {
 
 	}
+	return konek;
 }
 
-s16 aksi_GPRS(){
+void aksi_GPRS(){
 	if ( (signalOK==OK) && (flagGPRS==ERROR) )	{		// konek GPRS
 		konek_GPRS();
 	}

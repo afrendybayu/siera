@@ -19,14 +19,6 @@
 //s8 FCMHandler = OK;
 u32 DestAddressFlash;
 
-void simpan_IP(u32 almt)	{
-	u32 *Ptr32;
-
-	Ptr32 = &almt;
-	UpdateFlashParameter ( ( u16 ) PING_FLHID_HOSTADDR, PG_ZERO,
-		                            ( ascii** ) &Ptr32, TRUE );
-}
-
 
 s8 ValidateIPAddress ( ascii *IP )		{
     s8 Ret = OK;

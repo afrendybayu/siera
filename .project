@@ -3,6 +3,7 @@
 	<name>hello_dunia</name>
 	<comment></comment>
 	<projects>
+		<project>ethernet_driver</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
