@@ -25,4 +25,4 @@ const ascii adl_InitApplicationName[] = "berpaket_lancar";
 const ascii adl_InitCompanyName[] = "dbe.Abadhy";
 
 // Application version definition
-const ascii adl_InitApplicationVersion[] = "1.0.0";
+const ascii adl_InitApplicationVersion[] = "1.1.a";

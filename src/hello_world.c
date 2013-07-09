@@ -80,7 +80,7 @@ extern void main_task ( void );
 // Application tasks declaration table
 const adl_InitTasks_t adl_InitTasks [] =
 {
-    { main_task,  DECLARE_CALL_STACK ( 8192*2 ), "main", 1 },
+    { main_task,  DECLARE_CALL_STACK ( 8192 ), "main", 1 },
     { 0, 0, 0, 0 }
 };
 
@@ -123,8 +123,8 @@ void HelloWorld_TimerHandler ( adl_atCmdPreParser_t *paras )
 /*-------------------------------------------------------------------------*/
 /***************************************************************************/
 
-extern void AppliEntryPoint ( void );
-extern void CfgGprs ( void ( *EntryPoint ) ( void ) ) ;
+//extern void CfgGprs ( void ( *EntryPoint ) ( void ) ) ;
+extern void CfgGprs ( void ) ;
 
 void main_task ( void )		{
 	adl_InitType_e adl_InitType = adl_InitGetType ();
@@ -152,6 +152,6 @@ void main_task ( void )		{
     ret = wip_netInitOpts ( WIP_NET_OPT_END );
 
     if ( OK == ret )    {
-    	CfgGprs ( AppliEntryPoint ) ;
+    	CfgGprs () ;
     }
 }
